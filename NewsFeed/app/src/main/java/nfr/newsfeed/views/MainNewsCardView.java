@@ -47,6 +47,7 @@ public class MainNewsCardView extends ConstraintLayout {
      */
     public void setNewsData(String imageUrl, String title) {
         Glide.with(getContext()).load(imageUrl).into(newsImage);
+        newsImage.setContentDescription(title);
         newsTitle.setText(title);
     }
     

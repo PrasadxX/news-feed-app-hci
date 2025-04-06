@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textview.MaterialTextView;
 
+import nfr.newsfeed.views.MainNewsCardView;
+
 public class HomeFragment extends Fragment {
 
     @Nullable
@@ -24,6 +26,8 @@ public class HomeFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(new NewsAdapter());
 
+        MainNewsCardView newsCard = view.findViewById(R.id.main_news_card);
+        newsCard.setNewsData("https://cdn.newsfirst.lk/sinhala-uploads/2025/04/New%20Project-587285_850x460.jpg", "Global Updates Latest Events");
         return view;
     }
 
