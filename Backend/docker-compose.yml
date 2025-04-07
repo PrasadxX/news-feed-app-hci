@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017
+      - DATABASE_NAME=news_feed
+      - ORIGINAL_API_BASE_URL=https://apisinhala.newsfirst.lk
+      - NEWS_FETCH_INTERVAL=3600  # in seconds (1 hour)
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+volumes:
+  mongo_data:

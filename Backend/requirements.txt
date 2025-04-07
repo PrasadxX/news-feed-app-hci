@@ -1,0 +1,12 @@
+fastapi==0.104.1
+uvicorn==0.23.2
+motor==3.3.1
+pydantic==2.4.2
+python-dotenv==1.0.0
+httpx==0.25.0
+beautifulsoup4==4.12.2
+markdown==3.5
+markdownify==1.1.0
+html2markdown==0.1.7
+apscheduler==3.10.4
+pymongo==4.5.0
