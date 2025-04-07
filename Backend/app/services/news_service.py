@@ -1,8 +1,7 @@
 import httpx
 import asyncio
 import logging
-from datetime import datetime, timezone
-from dateutil import parser
+from datetime import datetime
 from typing import List, Dict, Any, Optional
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo.errors import DuplicateKeyError
