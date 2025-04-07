@@ -1,5 +1,7 @@
 package nfr.newsfeed.models;
 
+import android.util.Log;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.text.ParseException;
@@ -126,6 +128,7 @@ public class NewsItem {
                 return minutes + " minute" + (minutes > 1 ? "s" : "") + " ago";
             }
         } catch (ParseException e) {
+            Log.e("ERRROR_ParseException", e.getMessage());
             return "Unknown time";
         }
     }

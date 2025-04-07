@@ -1,0 +1,148 @@
+package nfr.newsfeed.activities;
+
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.bumptech.glide.Glide;
+import com.facebook.shimmer.ShimmerFrameLayout;
+import com.google.android.material.chip.Chip;
+
+import io.noties.markwon.Markwon;
+import nfr.newsfeed.R;
+import nfr.newsfeed.api.NewsApiService;
+import nfr.newsfeed.api.RetrofitClient;
+import nfr.newsfeed.models.ApiResponse;
+import nfr.newsfeed.models.NewsItem;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class NewsDetailActivity extends AppCompatActivity {
+
+    private ImageView newsImage;
+    private TextView titleTextView;
+    private TextView dateTextView;
+    private TextView contentTextView;
+    private Chip categoryChip;
+    private ShimmerFrameLayout shimmerLayout;
+    private Markwon markwon;
+
+    private String newsId;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_news_detail);
+
+        // Initialize Toolbar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
+
+        // Initialize Views
+        newsImage = findViewById(R.id.newsImage);
+        titleTextView = findViewById(R.id.titleTextView);
+        dateTextView = findViewById(R.id.dateTextView);
+        contentTextView = findViewById(R.id.contentTextView);
+        categoryChip = findViewById(R.id.categoryChip);
+        shimmerLayout = findViewById(R.id.shimmerLayout);
+
+        // Initialize Markwon
+        markwon = Markwon.create(this);
+
+        // Get news ID from intent
+        newsId = getIntent().getStringExtra("news_id");
+        if (newsId == null) {
+            Toast.makeText(this, "News ID not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Load news details
+        loadNewsDetails(newsId);
+    }
+
+    private void loadNewsDetails(String newsId) {
+        startShimmerEffect();
+
+        // Use the dedicated endpoint to get a single news item
+        NewsApiService apiService = RetrofitClient.getClient().create(NewsApiService.class);
+        apiService.getNewsById(newsId).enqueue(new Callback<NewsItem>() {
+            @Override
+            public void onResponse(Call<NewsItem> call, Response<NewsItem> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    NewsItem newsItem = response.body();
+                    displayNewsDetails(newsItem);
+                    stopShimmerEffect();
+                } else {
+                    // News item not found
+                    Toast.makeText(NewsDetailActivity.this, "News not found", Toast.LENGTH_SHORT).show();
+                    stopShimmerEffect();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<NewsItem> call, Throwable t) {
+                Toast.makeText(NewsDetailActivity.this, "Failed to load news: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                stopShimmerEffect();
+                finish();
+            }
+        });
+    }
+
+    private void displayNewsDetails(NewsItem newsItem) {
+        // Set title
+        titleTextView.setText(newsItem.getTitle());
+
+        // Set date
+        dateTextView.setText(newsItem.getFormattedTime());
+
+        // Set category
+        categoryChip.setText(newsItem.getCategoryName());
+
+        // Load image with Glide
+        if (newsItem.getImages() != null && newsItem.getImages().getNewsDetailImage() != null) {
+            Glide.with(this)
+                    .load(newsItem.getImages().getNewsDetailImage())
+                    .placeholder(R.drawable.placeholder_loading)
+                    .error(R.drawable.placeholder_error)
+                    .into(newsImage);
+        } else {
+            newsImage.setImageResource(R.drawable.placeholder_error);
+        }
+
+        // Convert HTML content to Markdown and render
+        String htmlContent = newsItem.getContent();
+        // For now, just using HTML directly until we add proper HTML to Markdown conversion
+        contentTextView.setText(android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT));
+    }
+
+    private void startShimmerEffect() {
+        shimmerLayout.setVisibility(View.VISIBLE);
+        shimmerLayout.startShimmer();
+    }
+
+    private void stopShimmerEffect() {
+        shimmerLayout.stopShimmer();
+        shimmerLayout.setVisibility(View.GONE);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+}
