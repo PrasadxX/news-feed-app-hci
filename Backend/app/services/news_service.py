@@ -1,7 +1,8 @@
 import httpx
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
+from dateutil import parser
 from typing import List, Dict, Any, Optional
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo.errors import DuplicateKeyError
@@ -52,17 +53,16 @@ async def process_news_item(news_item: Dict[str, Any], category_id: Optional[str
     # Parse date
     date_str = news_item.get('date', '')
     try:
-        # Handle various date formats
-        if 'T' in date_str:
-            # Try to parse ISO format with timezone
-            try:
-                date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-            except ValueError:
-                # If that fails, try without timezone
-                date_obj = datetime.strptime(date_str.split('T')[0], '%d-%m-%Y')
-        else:
-            # Try to parse date only
-            date_obj = datetime.strptime(date_str, '%d-%m-%Y')
+        if not date_str:
+            return datetime.now(timezone.utc)
+
+        try:
+            date_obj = parser.parse(date_str)
+            if date_obj.tzinfo is None:
+                date_obj = date_obj.replace(tzinfo=timezone.utc)
+            return date_obj
+        except Exception as e:
+            return datetime.now(timezone.utc)
     except Exception:
         # If all parsing fails, use current time
         date_obj = datetime.now()
