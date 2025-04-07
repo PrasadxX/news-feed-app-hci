@@ -3,6 +3,9 @@ name: Build Debug APK and Upload to GitHub Release
 on:
     workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Debug APK
