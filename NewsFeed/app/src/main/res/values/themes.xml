@@ -13,10 +13,18 @@
         <item name="colorOnSecondary">@color/black</item>
 
         <!-- Status bar color -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <!-- Card background color -->
+        <item name="cardBackgroundColor">@color/card_background</item>
 
         <!-- Text colors -->
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
+
+        <!-- For edge-to-edge layout -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
     </style>
 </resources>

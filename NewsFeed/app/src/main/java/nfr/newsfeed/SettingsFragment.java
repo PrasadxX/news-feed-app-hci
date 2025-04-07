@@ -1,6 +1,5 @@
 package nfr.newsfeed;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +18,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.util.ArrayList;
@@ -180,10 +180,11 @@ public class SettingsFragment extends Fragment {
     }
 
     private void showAboutDialog() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("About News Feed")
-                .setMessage("News Feed is a mobile application developed for the Human Computer Interaction subject at our university. It provides the latest news updates from various categories.\n\nDeveloped by: Your Name")
-                .setPositiveButton("OK", null)
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setTitle(R.string.about_app)
+                .setMessage(getString(R.string.about_content) + "\n\n" + getString(R.string.developer))
+                .setIcon(R.drawable.ic_info)
+                .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
 

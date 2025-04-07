@@ -37,11 +37,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     private void setupCategoryImages() {
         categoryImages = new HashMap<>();
-//        categoryImages.put("Local", R.drawable.category_local);
-//        categoryImages.put("Sport", R.drawable.category_sports);
-//        categoryImages.put("World", R.drawable.category_world);
-//        categoryImages.put("Business", R.drawable.category_business);
-//        categoryImages.put("Featured", R.drawable.category_featured);
+        categoryImages.put("Local", R.drawable.category_local);
+        categoryImages.put("Sport", R.drawable.category_sports);
+        categoryImages.put("World", R.drawable.category_world);
+        categoryImages.put("Business", R.drawable.category_business);
+        categoryImages.put("Featured", R.drawable.category_featured);
         // Add more categories as needed
     }
 

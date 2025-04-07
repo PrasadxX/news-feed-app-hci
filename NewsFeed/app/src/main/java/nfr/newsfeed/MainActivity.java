@@ -2,10 +2,15 @@ package nfr.newsfeed;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -34,6 +39,42 @@ public class MainActivity extends AppCompatActivity {
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        // Configure window insets
+        View rootView = findViewById(R.id.main);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+            // Apply insets to toolbar
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                toolbar.setPadding(
+                        toolbar.getPaddingLeft(),
+                        systemBars.top,
+                        toolbar.getPaddingRight(),
+                        toolbar.getPaddingBottom()
+                );
+            }
+
+            // Apply insets to fragment container
+            View fragmentContainer = findViewById(R.id.fragment_container);
+            if (fragmentContainer != null) {
+                fragmentContainer.setPadding(0, 0, 0, systemBars.bottom);
+            }
+
+            // Apply insets to bottom navigation
+            View bottomNav = findViewById(R.id.bottom_navigation);
+            if (bottomNav != null) {
+                bottomNav.setPadding(
+                        bottomNav.getPaddingLeft(),
+                        bottomNav.getPaddingTop(),
+                        bottomNav.getPaddingRight(),
+                        systemBars.bottom
+                );
+            }
+
+            return WindowInsetsCompat.CONSUMED;
+        });
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
