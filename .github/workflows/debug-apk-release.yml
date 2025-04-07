@@ -32,4 +32,4 @@ jobs:
         with:
           files: app/build/outputs/apk/debug/app-debug.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          TOKEN: ${{ secrets.TOKEN }}
