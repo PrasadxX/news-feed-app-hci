@@ -35,3 +35,7 @@ services:
 
 volumes:
   mongo_data:
+
+networks:
+  app_network:
+    driver: bridge
