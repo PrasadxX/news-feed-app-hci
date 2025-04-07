@@ -25,7 +25,6 @@ services:
 
   cloudflared:
     image: cloudflare/cloudflared:2025.1.0
-    container_name: dashboard-cloudflared
     restart: unless-stopped
     command: tunnel run
     environment:
