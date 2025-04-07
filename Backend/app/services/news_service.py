@@ -61,7 +61,11 @@ async def process_news_item(news_item: Dict[str, Any], category_id: Optional[str
                 # Try parsing just the date
                 date_parts = date_str.split('T')[0].split('-')
                 if len(date_parts) == 3:
-                    date_obj = datetime.strptime(date_str.split('T')[0], '%Y-%m-%d')
+                    # Check if format is yyyy-mm-dd or dd-mm-yyyy
+                    if len(date_parts[0]) == 4:  # yyyy-mm-dd
+                        date_obj = datetime.strptime(date_str.split('T')[0], '%Y-%m-%d')
+                    else:  # dd-mm-yyyy
+                        date_obj = datetime.strptime(date_str.split('T')[0], '%d-%m-%Y')
         else:
             # Try common date formats
             for fmt in ['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y']:
@@ -72,7 +76,6 @@ async def process_news_item(news_item: Dict[str, Any], category_id: Optional[str
                     continue
     except Exception as e:
         date_obj = datetime.now()
-        
     # Create NewsInDB object
     news_db = NewsInDB(
         id=id_str,
