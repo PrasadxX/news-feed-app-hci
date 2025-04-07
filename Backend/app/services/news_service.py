@@ -53,16 +53,17 @@ async def process_news_item(news_item: Dict[str, Any], category_id: Optional[str
     # Parse date
     date_str = news_item.get('date', '')
     try:
-        if not date_str:
-            return datetime.now(timezone.utc)
-
-        try:
-            date_obj = parser.parse(date_str)
-            if date_obj.tzinfo is None:
-                date_obj = date_obj.replace(tzinfo=timezone.utc)
-            return date_obj
-        except Exception as e:
-            return datetime.now(timezone.utc)
+        if 'T' in date_str:
+            # Try full ISO parsing first
+            try:
+                date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            except ValueError:
+                # If that fails, try without timezone
+                date_parts = date_str.split('T')[0]
+                date_obj = datetime.fromisoformat(f"{date_parts}T00:00:00+00:00")
+        else:
+                # Try to parse date only
+                date_obj = datetime.strptime(date_str, '%d-%m-%Y')
     except Exception:
         # If all parsing fails, use current time
         date_obj = datetime.now()
