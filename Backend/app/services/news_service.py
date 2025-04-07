@@ -52,21 +52,27 @@ async def process_news_item(news_item: Dict[str, Any], category_id: Optional[str
     # Parse date
     date_str = news_item.get('date', '')
     try:
+        # Try ISO format parsing
         if 'T' in date_str:
-            # Try full ISO parsing first
+            # Handle ISO format with timezone
             try:
-                date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                date_obj = datetime.fromisoformat(date_str)
             except ValueError:
-                # If that fails, try without timezone
-                date_parts = date_str.split('T')[0]
-                date_obj = datetime.fromisoformat(f"{date_parts}T00:00:00+00:00")
+                # Try parsing just the date
+                date_parts = date_str.split('T')[0].split('-')
+                if len(date_parts) == 3:
+                    date_obj = datetime.strptime(date_str.split('T')[0], '%Y-%m-%d')
         else:
-                # Try to parse date only
-                date_obj = datetime.strptime(date_str, '%d-%m-%Y')
-    except Exception:
-        # If all parsing fails, use current time
+            # Try common date formats
+            for fmt in ['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y']:
+                try:
+                    date_obj = datetime.strptime(date_str, fmt)
+                    break
+                except ValueError:
+                    continue
+    except Exception as e:
         date_obj = datetime.now()
-    
+        
     # Create NewsInDB object
     news_db = NewsInDB(
         id=id_str,
