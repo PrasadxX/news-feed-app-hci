@@ -1,6 +1,9 @@
 package nfr.newsfeed.adapters;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +19,7 @@ import com.google.android.material.chip.Chip;
 import java.util.List;
 
 import nfr.newsfeed.R;
+import nfr.newsfeed.activities.CategoryNewsActivity;
 import nfr.newsfeed.models.NewsItem;
 
 public class CategoryNewsAdapter extends RecyclerView.Adapter<CategoryNewsAdapter.CategoryNewsViewHolder> {
@@ -51,6 +55,13 @@ public class CategoryNewsAdapter extends RecyclerView.Adapter<CategoryNewsAdapte
 
         // Set category chip
         holder.categoryChip.setText(item.getCategoryName());
+
+        holder.categoryChip.setOnClickListener(v -> {
+            Intent intent = new Intent(context, CategoryNewsActivity.class);
+            intent.putExtra("category_id", Integer.parseInt(item.getCategoryId()));
+            intent.putExtra("category_name", item.getCategoryName());
+            startActivity(context,intent,null);
+        });
 
         // Set time
         holder.timeText.setText(item.getFormattedTime());
