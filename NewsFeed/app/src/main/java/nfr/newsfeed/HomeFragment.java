@@ -67,6 +67,9 @@ public class HomeFragment extends Fragment {
     private boolean isLastPage = false;
     private final int ITEMS_PER_PAGE = 10;
 
+    private int savedScrollPosition = 0;
+    private boolean isDataLoaded = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -94,12 +97,15 @@ public class HomeFragment extends Fragment {
 
         // Start loading data
         startShimmerEffect();
-        loadMainNewsAndLatestNews();
-        int selectedCategoryId = preferencesManager.getSelectedCategoryId();
-        categoryTitleTextView.setText(getCategoryNameById(selectedCategoryId) + " News");
-        loadCategoryNews(selectedCategoryId, currentPage, false);
+        loadInitialData();
 
         return view;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true); // Retain fragment instance
     }
 
     private void setupLatestNewsRecyclerView() {
@@ -200,9 +206,7 @@ public class HomeFragment extends Fragment {
         categoryNewsList.clear();
 
         // Reload data
-        loadMainNewsAndLatestNews();
-        int selectedCategoryId = preferencesManager.getSelectedCategoryId();
-        loadCategoryNews(selectedCategoryId, currentPage, false);
+        loadInitialData();
     }
 
     private void loadMoreCategoryNews() {
@@ -212,6 +216,13 @@ public class HomeFragment extends Fragment {
         currentPage++;
         int selectedCategoryId = preferencesManager.getSelectedCategoryId();
         loadCategoryNews(selectedCategoryId, currentPage, true);
+    }
+
+    private void loadInitialData() {
+        int selectedCategoryId = preferencesManager.getSelectedCategoryId();
+        categoryTitleTextView.setText(getCategoryNameById(selectedCategoryId) + " News");
+        loadMainNewsAndLatestNews();
+        loadCategoryNews(selectedCategoryId, currentPage, false);
     }
 
     private void loadMainNewsAndLatestNews() {
@@ -224,16 +235,14 @@ public class HomeFragment extends Fragment {
                     if (breakingNews != null && !breakingNews.isEmpty()) {
                         // Set main news card
                         mainNewsItem = breakingNews.get(0);
-                        if (mainNewsItem.getImages() != null) {
-                            String displayTitle = mainNewsItem.getShortTitle() != null ? mainNewsItem.getShortTitle() : mainNewsItem.getTitle();
-                            mainNewsCard.setNewsData(
-                                    mainNewsItem.getImages().getLargeTileImage(),
-                                    displayTitle
-                            );
+                        String displayTitle = mainNewsItem.getShortTitle() != null ? mainNewsItem.getShortTitle() : mainNewsItem.getTitle();
+                        mainNewsCard.setNewsData(
+                                mainNewsItem.getImages().getLargeTileImage(),
+                                displayTitle
+                        );
 
-                            // Set click listener for main news card
-                            mainNewsCard.setOnClickListener(v -> openNewsDetail(mainNewsItem));
-                        }
+                        // Set click listener for main news card
+                        mainNewsCard.setOnClickListener(v -> openNewsDetail(mainNewsItem));
 
                         // Set latest news carousel (excluding main news)
                         latestNewsList.clear();
@@ -281,6 +290,8 @@ public class HomeFragment extends Fragment {
                         }
                     }
 
+                    isDataLoaded = true;
+
                     stopShimmerEffect();
                     swipeRefreshLayout.setRefreshing(false);
                     paginationProgressBar.setVisibility(View.GONE);
@@ -300,6 +311,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void openNewsDetail(NewsItem newsItem) {
+        // Save scroll position before opening detail
+        if (categoryNewsRecyclerView != null) {
+            savedScrollPosition = categoryNewsRecyclerView.computeVerticalScrollOffset();
+        }
+
         Intent intent = new Intent(requireContext(), NewsDetailActivity.class);
         intent.putExtra("news_id", newsItem.getId());
         startActivity(intent);
@@ -341,19 +357,14 @@ public class HomeFragment extends Fragment {
         super.onResume();
         startCarouselAutoScroll();
 
-        // Check if category has changed
-        int currentSelectedCategory = preferencesManager.getSelectedCategoryId();
-        if (categoryTitleTextView != null) {
-            categoryTitleTextView.setText(getCategoryNameById(currentSelectedCategory) + " News");
-        }
-
-        // Reload category news if view is created
-        if (categoryNewsAdapter != null && categoryNewsRecyclerView != null) {
-            currentPage = 1;
-            isLastPage = false;
-            categoryNewsList.clear();
-            categoryNewsAdapter.notifyDataSetChanged();
-            loadCategoryNews(currentSelectedCategory, currentPage, false);
+        // Only reload if data hasn't been loaded yet
+        if (!isDataLoaded) {
+            loadInitialData();
+        } else {
+            // Restore scroll position
+            if (categoryNewsRecyclerView != null) {
+                categoryNewsRecyclerView.post(() -> categoryNewsRecyclerView.scrollToPosition(savedScrollPosition));
+            }
         }
     }
 
@@ -361,5 +372,9 @@ public class HomeFragment extends Fragment {
     public void onPause() {
         super.onPause();
         stopCarouselAutoScroll();
+        // Save scroll position
+        if (categoryNewsRecyclerView != null) {
+            savedScrollPosition = categoryNewsRecyclerView.computeVerticalScrollOffset();
+        }
     }
 }

@@ -2,6 +2,7 @@ package nfr.newsfeed.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.widget.NestedScrollView;
 
 import com.bumptech.glide.Glide;
 import com.facebook.shimmer.ShimmerFrameLayout;
@@ -35,8 +37,11 @@ public class NewsDetailActivity extends AppCompatActivity {
     private Chip categoryChip;
     private ShimmerFrameLayout shimmerLayout;
     private Markwon markwon;
+    private NestedScrollView scrollView;
 
     private String newsId;
+    private int scrollPosition = 0;
+    private static final String SCROLL_POSITION_KEY = "scroll_position";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +61,14 @@ public class NewsDetailActivity extends AppCompatActivity {
         contentTextView = findViewById(R.id.contentTextView);
         categoryChip = findViewById(R.id.categoryChip);
         shimmerLayout = findViewById(R.id.shimmerLayout);
+        
+        // Fix: Update to match the actual ID in the layout
+        scrollView = findViewById(R.id.nested_scroll_view);
+        
+        // Debug log to verify if we found the view
+        if (scrollView == null) {
+            Log.e("NewsDetailActivity", "NestedScrollView not found. Check if ID is correct in layout.");
+        }
 
         // Initialize Markwon
         markwon = Markwon.create(this);
@@ -68,8 +81,45 @@ public class NewsDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Restore scroll position if available
+        if (savedInstanceState != null) {
+            scrollPosition = savedInstanceState.getInt(SCROLL_POSITION_KEY, 0);
+        }
+
         // Load news details
         loadNewsDetails(newsId);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Save the current scroll position when the activity state is saved
+        if (scrollView != null) {
+            outState.putInt(SCROLL_POSITION_KEY, scrollView.getScrollY());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Save current scroll position when the activity is paused
+        if (scrollView != null) {
+            scrollPosition = scrollView.getScrollY();
+            getPreferences(MODE_PRIVATE).edit()
+                    .putInt(newsId + "_scroll_position", scrollPosition)
+                    .apply();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Restore scroll position when returning to this activity
+        if (scrollView != null && newsId != null) {
+            scrollPosition = getPreferences(MODE_PRIVATE)
+                    .getInt(newsId + "_scroll_position", 0);
+            scrollView.post(() -> scrollView.scrollTo(0, scrollPosition));
+        }
     }
 
     private void loadNewsDetails(String newsId) {
@@ -134,6 +184,11 @@ public class NewsDetailActivity extends AppCompatActivity {
         String htmlContent = newsItem.getContent();
         // For now, just using HTML directly until we add proper HTML to Markdown conversion
         contentTextView.setText(android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT));
+        
+        // Add null check before using scrollView
+        if (scrollView != null) {
+            scrollView.post(() -> scrollView.scrollTo(0, scrollPosition));
+        }
     }
 
     private void startShimmerEffect() {
@@ -149,9 +204,29 @@ public class NewsDetailActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
+            // Save scroll position before going back
+            if (scrollView != null) {
+                scrollPosition = scrollView.getScrollY();
+                getPreferences(MODE_PRIVATE).edit()
+                        .putInt(newsId + "_scroll_position", scrollPosition)
+                        .apply();
+            }
             onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Make sure we save scroll position before navigating back
+        if (scrollView != null && newsId != null) {
+            scrollPosition = scrollView.getScrollY();
+            getPreferences(MODE_PRIVATE).edit()
+                    .putInt(newsId + "_scroll_position", scrollPosition)
+                    .apply();
+        }
+        
+        super.onBackPressed();
     }
 }
