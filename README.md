@@ -1,33 +1,58 @@
-# 📰 News Feed - SL Android App
+# 📰 Mobile News Application
 
-A mobile news application developed using **Android Studio (Java)**. The app fetches and displays news in different categories using a **FastAPI + MongoDB** backend. It features dynamic carousels, dark mode support, and efficient image loading.
+A mobile news application developed using **Android Studio (Java)**. The app fetches and displays categorized news using a **FastAPI + MongoDB** backend. It includes dynamic carousels, dark mode, efficient image loading, and a modern UI.
+
+---
 
 ## 🚀 Tech Stack
 
 - **Android Studio** – Mobile app development
 - **Java** – Programming language
+- **FastAPI** – Python-based backend
 - **MongoDB** – NoSQL database
-- **FastAPI** – Python-based backend framework
-- **Retrofit** – API integration
-- **Glide** – Image loading and caching
+- **Docker Compose** – For backend deployment
+- **Retrofit** – API client for Android
+- **Glide** – Image loading & caching
 - **Material Design** – UI components
-- **Pydantic** – Backend data validation
-- **Shimmer** – Loading effects
-- **BeautifulSoup + html2markdown** – HTML-to-Markdown conversion
+- **Pydantic** – Data validation (backend)
+- **Shimmer** – Loading animations
+- **BeautifulSoup + html2markdown** – HTML-to-Markdown parsing
 
-## 👨‍💻 Contributors & Roles
+---
 
-### 1. Thejan Godagama (SA23639126)
-- **Front-End:** Home Fragment (breaking news carousel), Settings Fragment (dark mode, category selection)
-- **Back-End:** HTML Converter using `html2markdown` and `BeautifulSoup`
-- **Other:** Gradient effects, AppCompatDelegate
+## 🧑‍💻 Contributors & Roles
 
-### 2. Prasad Semasinghe (SA23629158)
-- **Front-End:** Card Component (Material 3), Category Section (grid view)
-- **Back-End:** `news.py` (Pydantic models), MongoDB integration
+### 1. Malith Rukshan (SA23640016)
+- **Backend:**
+  - Built the full FastAPI backend
+  - Created all API routes for news data
 
-### 3. Malith Rukshan (SA23640016)
-- **Front-End:** Latest News (horizontal auto-scroll), News Detail View (Markdown), Category News Viewer
-- **Back-End:** FastAPI routes, MongoDB integration with pagination
+- **Frontend:**
+  - Developed Latest News section with horizontal auto-scroll
+  - Created Category News Viewer activity
+  - Designed News Detail View with Markdown support
+
+---
+
+### 2. Thejan Godagama (SA23639126)
+- **Frontend:**
+  - Home Fragment (breaking news carousel)
+  - Settings Fragment (dark mode, category selector)
+  - Applied gradient loading effects
+
+- **Backend:**
+  - HTML to Markdown converter using BeautifulSoup
+
+---
+
+### 3. Prasad Semasinghe (SA23629158)
+- **Frontend:**
+  - Design Backend MongoDB Structure.
+  - Category Card Components using Material 3
+  - Category grid layout with RecyclerView
+
+- **Backend:**
+  - Defined Pydantic models for news schema
+  - MongoDB structure and storage setup
 
 ---
