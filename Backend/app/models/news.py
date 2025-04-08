@@ -33,7 +33,10 @@ class NewsInDB(NewsBase):
         populate_by_name = True
 
 class NewsResponse(NewsBase):
-    pass
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        }
 
 class CategoryBase(BaseModel):
     id: int

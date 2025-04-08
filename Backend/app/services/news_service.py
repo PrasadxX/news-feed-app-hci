@@ -50,32 +50,25 @@ async def process_news_item(news_item: Dict[str, Any], category_id: Optional[str
     excerpt_markdown = html_to_markdown(excerpt_html)
     
     # Parse date
-    date_str = news_item.get('date', '')
+    date_str = news_item.get('date_gmt') 
+        
     try:
-        # Try ISO format parsing
-        if 'T' in date_str:
-            # Handle ISO format with timezone
-            try:
-                date_obj = datetime.fromisoformat(date_str)
-            except ValueError:
-                # Try parsing just the date
-                date_parts = date_str.split('T')[0].split('-')
-                if len(date_parts) == 3:
-                    # Check if format is yyyy-mm-dd or dd-mm-yyyy
-                    if len(date_parts[0]) == 4:  # yyyy-mm-dd
-                        date_obj = datetime.strptime(date_str.split('T')[0], '%Y-%m-%d')
-                    else:  # dd-mm-yyyy
-                        date_obj = datetime.strptime(date_str.split('T')[0], '%d-%m-%Y')
-        else:
-            # Try common date formats
-            for fmt in ['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y']:
+        if date_str:
+            if date_str.endswith('Z'):
+                # Handle ISO format with Z timezone indicator
+                date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            else:
                 try:
-                    date_obj = datetime.strptime(date_str, fmt)
-                    break
+                    # Try parsing other common formats
+                    date_obj = datetime.strptime(date_str, '%d-%m-%YT%I:%M %p')
                 except ValueError:
-                    continue
+                    # Default to current time if parsing fails
+                    date_obj = datetime.now()
+        else:
+            date_obj = datetime.now()
     except Exception as e:
         date_obj = datetime.now()
+        
     # Create NewsInDB object
     news_db = NewsInDB(
         id=id_str,
