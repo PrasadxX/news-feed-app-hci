@@ -29,6 +29,7 @@ import java.util.Map;
 import nfr.newsfeed.api.NewsApiService;
 import nfr.newsfeed.api.RetrofitClient;
 import nfr.newsfeed.models.Category;
+import nfr.newsfeed.utils.HapticUtils;
 import nfr.newsfeed.utils.PreferencesManager;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -46,6 +47,7 @@ public class SettingsFragment extends Fragment {
     private PreferencesManager preferencesManager;
     private Map<String, Integer> categoryMap = new HashMap<>();
     private List<String> categoryNames = new ArrayList<>();
+    private Call<List<Category>> categoriesCall;
 
     @Nullable
     @Override
@@ -70,13 +72,22 @@ public class SettingsFragment extends Fragment {
         loadCategories();
 
         // Set up about card
-        aboutCard.setOnClickListener(v -> showAboutDialog());
+        aboutCard.setOnClickListener(v -> {
+            HapticUtils.vibrate(requireContext());
+            showAboutDialog();
+        });
 
         // Set up share card
-        shareCard.setOnClickListener(v -> shareApp());
+        shareCard.setOnClickListener(v -> {
+            HapticUtils.vibrate(requireContext());
+            shareApp();
+        });
 
         // Set up rate card
-        rateCard.setOnClickListener(v -> rateApp());
+        rateCard.setOnClickListener(v -> {
+            HapticUtils.vibrate(requireContext());
+            rateApp();
+        });
 
         // Set app version
         try {
@@ -96,10 +107,13 @@ public class SettingsFragment extends Fragment {
 
         // Set listener for changes
         darkModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Add vibration feedback
+            HapticUtils.vibrate(requireContext());
+
             // Save preference
             preferencesManager.setDarkModeEnabled(isChecked);
 
-            // Apply theme
+            // Apply theme (this will recreate the activity)
             if (isChecked) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             } else {
@@ -109,10 +123,21 @@ public class SettingsFragment extends Fragment {
     }
 
     private void loadCategories() {
+        // Cancel any existing call
+        if (categoriesCall != null) {
+            categoriesCall.cancel();
+        }
+
         NewsApiService apiService = RetrofitClient.getClient().create(NewsApiService.class);
-        apiService.getCategories().enqueue(new Callback<List<Category>>() {
+        categoriesCall = apiService.getCategories();
+        categoriesCall.enqueue(new Callback<List<Category>>() {
             @Override
             public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                // Check if fragment is still attached before proceeding
+                if (!isAdded()) {
+                    return;
+                }
+
                 if (response.isSuccessful() && response.body() != null) {
                     // Clear previous data
                     categoryMap.clear();
@@ -124,71 +149,106 @@ public class SettingsFragment extends Fragment {
                         categoryNames.add(category.getName());
                     }
 
-                    // Set up spinner adapter
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                            requireContext(),
-                            android.R.layout.simple_spinner_dropdown_item,
-                            categoryNames
-                    );
-                    categorySpinner.setAdapter(adapter);
+                    // Set up spinner adapter if fragment still attached
+                    if (isAdded() && getContext() != null) {
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                getContext(),
+                                android.R.layout.simple_spinner_dropdown_item,
+                                categoryNames
+                        );
+                        categorySpinner.setAdapter(adapter);
 
-                    // Set selected category
-                    int selectedCategoryId = preferencesManager.getSelectedCategoryId();
-                    for (Map.Entry<String, Integer> entry : categoryMap.entrySet()) {
-                        if (entry.getValue() == selectedCategoryId) {
-                            int position = categoryNames.indexOf(entry.getKey());
-                            if (position >= 0) {
-                                categorySpinner.setSelection(position);
+                        // Set selected category
+                        int selectedCategoryId = preferencesManager.getSelectedCategoryId();
+                        for (Map.Entry<String, Integer> entry : categoryMap.entrySet()) {
+                            if (entry.getValue() == selectedCategoryId) {
+                                int position = categoryNames.indexOf(entry.getKey());
+                                if (position >= 0) {
+                                    categorySpinner.setSelection(position);
+                                }
+                                break;
                             }
-                            break;
                         }
+
+                        // Set listener for selection changes
+                        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                // Check if fragment is still attached
+                                if (!isAdded()) {
+                                    return;
+                                }
+
+                                String categoryName = categoryNames.get(position);
+                                Integer categoryId = categoryMap.get(categoryName);
+                                if (categoryId != null) {
+                                    preferencesManager.setSelectedCategoryId(categoryId);
+
+                                    // Only show toast if fragment is attached
+                                    if (isAdded() && getContext() != null) {
+                                        Toast.makeText(
+                                                getContext(),
+                                                "Home screen will show " + categoryName + " news",
+                                                Toast.LENGTH_SHORT
+                                        ).show();
+
+                                        // Add haptic feedback
+                                        HapticUtils.vibrate(getContext());
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                // Do nothing
+                            }
+                        });
                     }
-
-                    // Set listener for selection changes
-                    categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            String categoryName = categoryNames.get(position);
-                            Integer categoryId = categoryMap.get(categoryName);
-                            if (categoryId != null) {
-                                preferencesManager.setSelectedCategoryId(categoryId);
-                                Toast.makeText(
-                                        requireContext(),
-                                        "Home screen will show " + categoryName + " news",
-                                        Toast.LENGTH_SHORT
-                                ).show();
-                            }
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-                            // Do nothing
-                        }
-                    });
                 }
             }
 
             @Override
             public void onFailure(Call<List<Category>> call, Throwable t) {
-                Toast.makeText(
-                        requireContext(),
-                        "Failed to load categories: " + t.getMessage(),
-                        Toast.LENGTH_SHORT
-                ).show();
+                // Only show error if not canceled and fragment is attached
+                if (!call.isCanceled() && isAdded() && getContext() != null) {
+                    Toast.makeText(
+                            getContext(),
+                            "Failed to load categories: " + t.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
             }
         });
     }
 
     private void showAboutDialog() {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
         builder.setTitle(R.string.about_app)
-                .setMessage(getString(R.string.about_content) + "\n\n" + getString(R.string.developer))
+                .setMessage(R.string.about_content + "\n\n" + getString(R.string.developer))
                 .setIcon(R.drawable.ic_info)
-                .setPositiveButton(android.R.string.ok, null)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    // Add haptic feedback when dialog button is clicked
+                    if (isAdded() && getContext() != null) {
+                        HapticUtils.vibrate(getContext());
+                    }
+                })
                 .show();
+
+        // Add haptic feedback when dialog appears
+        if (isAdded() && getContext() != null) {
+            HapticUtils.vibrate(getContext());
+        }
     }
 
     private void shareApp() {
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Check out this News Feed app!");
@@ -197,11 +257,24 @@ public class SettingsFragment extends Fragment {
     }
 
     private void rateApp() {
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+
         // In a real app, this would point to the Play Store listing
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + requireContext().getPackageName())));
         } catch (android.content.ActivityNotFoundException e) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + requireContext().getPackageName())));
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Cancel any pending network requests
+        if (categoriesCall != null) {
+            categoriesCall.cancel();
         }
     }
 }
