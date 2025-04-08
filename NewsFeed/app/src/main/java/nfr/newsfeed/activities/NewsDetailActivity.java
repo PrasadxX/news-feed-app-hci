@@ -1,5 +1,6 @@
 package nfr.newsfeed.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -107,8 +108,16 @@ public class NewsDetailActivity extends AppCompatActivity {
         // Set date
         dateTextView.setText(newsItem.getFormattedTime());
 
-        // Set category
+        // Set category and make it clickable
         categoryChip.setText(newsItem.getCategoryName());
+        
+        // Set up click listener for category chip
+        categoryChip.setOnClickListener(v -> {
+            Intent intent = new Intent(this, CategoryNewsActivity.class);
+            intent.putExtra("category_id", Integer.parseInt(newsItem.getCategoryId()));
+            intent.putExtra("category_name", newsItem.getCategoryName());
+            startActivity(intent);
+        });
 
         // Load image with Glide
         if (newsItem.getImages() != null && newsItem.getImages().getNewsDetailImage() != null) {

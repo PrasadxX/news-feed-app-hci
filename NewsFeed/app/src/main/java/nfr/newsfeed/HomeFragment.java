@@ -225,9 +225,10 @@ public class HomeFragment extends Fragment {
                         // Set main news card
                         mainNewsItem = breakingNews.get(0);
                         if (mainNewsItem.getImages() != null) {
+                            String displayTitle = mainNewsItem.getShortTitle() != null ? mainNewsItem.getShortTitle() : mainNewsItem.getTitle();
                             mainNewsCard.setNewsData(
                                     mainNewsItem.getImages().getLargeTileImage(),
-                                    mainNewsItem.getTitle()
+                                    displayTitle
                             );
 
                             // Set click listener for main news card
