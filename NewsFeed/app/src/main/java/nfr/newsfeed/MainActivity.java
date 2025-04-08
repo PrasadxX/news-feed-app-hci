@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import nfr.newsfeed.helpers.NavigationItem;
+import nfr.newsfeed.utils.HapticUtils;
 import nfr.newsfeed.utils.PreferencesManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
+            HapticUtils.vibrate(this);
 
             for (NavigationItem navigationItem : NavigationItem.values()) {
                 if (navigationItem.getId() == item.getItemId()) {
