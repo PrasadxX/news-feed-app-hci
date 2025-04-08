@@ -92,7 +92,7 @@ async def fetch_and_store_breaking_news():
     Fetch breaking news and store in database.
     """
     logger.info("Fetching breaking news")
-    page = 1
+    page = 0
     limit = settings.BREAKING_NEWS_LIMIT
     
     endpoint = settings.BREAKING_NEWS_ENDPOINT.format(page=page, limit=limit)
@@ -122,7 +122,7 @@ async def fetch_and_store_category_news():
     Fetch news for each category and store in database.
     """
     logger.info("Fetching category news")
-    page = 1
+    page = 0
     limit = settings.CATEGORY_NEWS_LIMIT
     
     for category_name, category_id in settings.CATEGORIES.items():
