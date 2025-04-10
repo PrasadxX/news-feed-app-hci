@@ -182,7 +182,6 @@ public class NewsDetailActivity extends AppCompatActivity {
 
         // Convert HTML content to Markdown and render
         String htmlContent = newsItem.getContent();
-        // For now, just using HTML directly until we add proper HTML to Markdown conversion
         contentTextView.setText(android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT));
         
         // Add null check before using scrollView
